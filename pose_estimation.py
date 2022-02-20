@@ -12,6 +12,34 @@ import argparse
 import time
 
 
+def drawAxis(frame, matrix_coefficients, rvec, tvec):
+    frame = frame.copy()
+
+
+    K = matrix_coefficients
+    R = cv2.Rodrigues(rvec)[0]
+    t = np.reshape(tvec, (3,1))
+    P = np.concatenate((R,t),axis=1)
+    z = 1
+
+    X1 = np.array([[0],[0],[0], [1]])
+    x1 = (1/z) * np.matmul( np.matmul(K,P), X1 )
+    frame = cv2.circle(frame, (int(x1[0,0]/x1[2,0]), int(x1[1,0]/x1[2,0])), 5, (255,0,0),-1 )
+
+    X2 = np.array([[0.01], [0], [0], [1]])
+    x2 = (1 / z) * np.matmul(np.matmul(K, P), X2)
+    frame = cv2.circle(frame, (int(x2[0, 0] / x2[2, 0]), int(x2[1, 0] / x2[2, 0])), 5, (255, 0, 0), -1)
+
+    X3 = np.array([[0], [0.01], [0], [1]])
+    x3 = (1 / z) * np.matmul(np.matmul(K, P), X3)
+    frame = cv2.circle(frame, (int(x3[0, 0] / x3[2, 0]), int(x3[1, 0] / x3[2, 0])), 5, (0, 255, 0), -1)
+
+    X4 = np.array([[0], [0], [0.01], [1]])
+    x4 = (1 / z) * np.matmul(np.matmul(K, P), X4)
+    frame = cv2.circle(frame, (int(x4[0, 0] / x4[2, 0]), int(x4[1, 0] / x4[2, 0])), 5, (0, 0, 255), -1)
+
+    return frame
+
 def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coefficients):
 
     '''
@@ -22,7 +50,7 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
     return:-
     frame - The frame with the axis drawn on it
     '''
-
+    frame_2 = frame.copy()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     cv2.aruco_dict = cv2.aruco.Dictionary_get(aruco_dict_type)
     # cv2.aruco_dict = cv2.aruco.Dictionary_get(1)
@@ -44,8 +72,9 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
 
             # Draw Axis
             frame = cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
+            frame_2 = drawAxis(frame, matrix_coefficients, rvec, tvec)
 
-    return frame
+    return frame, frame_2
 
 if __name__ == '__main__':
 
@@ -76,9 +105,9 @@ if __name__ == '__main__':
         if not ret:
             break
 
-        output = pose_esitmation(frame, aruco_dict_type, k, d)
+        output, output2 = pose_esitmation(frame, aruco_dict_type, k, d)
 
-        cv2.imshow('Estimated Pose', output)
+        cv2.imshow('Estimated Pose', output2)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
