@@ -28,7 +28,7 @@ def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1
     return frame
 
 
-def drawAxis(frame, matrix_coefficients, rvec, tvec):
+def draw(frame, matrix_coefficients, rvec, tvec):
     frame = frame.copy()
 
 
@@ -44,7 +44,7 @@ def drawAxis(frame, matrix_coefficients, rvec, tvec):
     y1 = int(x_1[1,0]/x_1[2,0])
     p1 = np.array([[x1],
                    [y1]])
-    frame = cv2.circle(frame, (x1,y1), 5, (255,0,0),-1 )
+    # frame = cv2.circle(frame, (x1,y1), 5, (255,0,0),-1 )
 
     X2 = np.array([[0.01], [0], [0], [1]])
     x_2 = (1 / z) * np.matmul(np.matmul(K, P), X2)
@@ -52,7 +52,7 @@ def drawAxis(frame, matrix_coefficients, rvec, tvec):
     y2 = int(x_2[1,0]/x_2[2,0])
     p2 = np.array([[x2],
                    [y2]])
-    frame = cv2.circle(frame, (x2, y2), 5, (255, 0, 0), -1)
+    # frame = cv2.circle(frame, (x2, y2), 5, (255, 0, 0), -1)
 
     X3 = np.array([[0], [0.01], [0], [1]])
     x_3 = (1 / z) * np.matmul(np.matmul(K, P), X3)
@@ -60,7 +60,7 @@ def drawAxis(frame, matrix_coefficients, rvec, tvec):
     y3 = int(x_3[1,0]/x_3[2,0])
     p3 = np.array([[x3],
                    [y3]])
-    frame = cv2.circle(frame, (x3, y3), 5, (255, 0, 0), -1)
+    # frame = cv2.circle(frame, (x3, y3), 5, (255, 0, 0), -1)
 
     X4 = np.array([[0], [0], [0.01], [1]])
     x_4 = (1 / z) * np.matmul(np.matmul(K, P), X4)
@@ -68,7 +68,7 @@ def drawAxis(frame, matrix_coefficients, rvec, tvec):
     y4 = int(x_4[1,0]/x_4[2,0])
     p4 = np.array([[x4],
                    [y4]])
-    frame = cv2.circle(frame, (x4, y4), 5, (255, 0, 0), -1)
+    # frame = cv2.circle(frame, (x4, y4), 5, (255, 0, 0), -1)
 
     oo = np.array([[x1],
                    [y1]])
@@ -147,11 +147,11 @@ def pose_esitmation(frame, aruco_dict_type, matrix_coefficients, distortion_coef
             rvec, tvec, markerPoints = cv2.aruco.estimatePoseSingleMarkers(corners[i], 0.02, matrix_coefficients,
                                                                        distortion_coefficients)
             # Draw a square around the markers
-            frame = cv2.aruco.drawDetectedMarkers(frame, corners)
+            # frame = cv2.aruco.drawDetectedMarkers(frame, corners)
 
             # Draw Axis
-            frame = cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
-            frame_2 = drawAxis(frame, matrix_coefficients, rvec, tvec)
+            # frame = cv2.aruco.drawAxis(frame, matrix_coefficients, distortion_coefficients, rvec, tvec, 0.01)
+            frame_2 = draw(frame, matrix_coefficients, rvec, tvec)
 
     return frame, frame_2
 
@@ -178,6 +178,7 @@ if __name__ == '__main__':
     video = cv2.VideoCapture(0)
     time.sleep(2.0)
 
+    n = 0
     while True:
         ret, frame = video.read()
 
@@ -187,7 +188,8 @@ if __name__ == '__main__':
         output, output2 = pose_esitmation(frame, aruco_dict_type, k, d)
 
         cv2.imshow('Estimated Pose', output2)
-
+        cv2.imwrite(f"frames/frame_{n:2d}.jpg".replace(' ', '0'),output2 )
+        n += 1
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
