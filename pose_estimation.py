@@ -11,6 +11,22 @@ from utils import ARUCO_DICT
 import argparse
 import time
 
+def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1, p2, p3, p4, p5, p6, p7, p8):
+    frame = cv2.fillPoly(frame, [poly_top], color=(0, 255, 0))
+
+    if(p6[0,0] < p7[0,0]):
+        frame = cv2.fillPoly(frame, [poly_left], color = (0,0,255))
+    else:
+        frame = cv2.fillPoly(frame, [poly_right], color = (0,0,255))
+
+    if(p5[0,0] < p6[0,0]):
+        frame = cv2.fillPoly(frame, [poly_front], color = (255,0,0))
+    else:
+        frame = cv2.fillPoly(frame, [poly_behind], color = (255,0,0))
+
+
+    return frame
+
 
 def drawAxis(frame, matrix_coefficients, rvec, tvec):
     frame = frame.copy()
@@ -23,20 +39,83 @@ def drawAxis(frame, matrix_coefficients, rvec, tvec):
     z = 1
 
     X1 = np.array([[0],[0],[0], [1]])
-    x1 = (1/z) * np.matmul( np.matmul(K,P), X1 )
-    frame = cv2.circle(frame, (int(x1[0,0]/x1[2,0]), int(x1[1,0]/x1[2,0])), 5, (255,0,0),-1 )
+    x_1 = (1/z) * np.matmul( np.matmul(K,P), X1 )
+    x1 = int(x_1[0,0]/x_1[2,0])
+    y1 = int(x_1[1,0]/x_1[2,0])
+    p1 = np.array([[x1],
+                   [y1]])
+    frame = cv2.circle(frame, (x1,y1), 5, (255,0,0),-1 )
 
     X2 = np.array([[0.01], [0], [0], [1]])
-    x2 = (1 / z) * np.matmul(np.matmul(K, P), X2)
-    frame = cv2.circle(frame, (int(x2[0, 0] / x2[2, 0]), int(x2[1, 0] / x2[2, 0])), 5, (255, 0, 0), -1)
+    x_2 = (1 / z) * np.matmul(np.matmul(K, P), X2)
+    x2 = int(x_2[0,0]/x_2[2,0])
+    y2 = int(x_2[1,0]/x_2[2,0])
+    p2 = np.array([[x2],
+                   [y2]])
+    frame = cv2.circle(frame, (x2, y2), 5, (255, 0, 0), -1)
 
     X3 = np.array([[0], [0.01], [0], [1]])
-    x3 = (1 / z) * np.matmul(np.matmul(K, P), X3)
-    frame = cv2.circle(frame, (int(x3[0, 0] / x3[2, 0]), int(x3[1, 0] / x3[2, 0])), 5, (0, 255, 0), -1)
+    x_3 = (1 / z) * np.matmul(np.matmul(K, P), X3)
+    x3 = int(x_3[0,0]/x_3[2,0])
+    y3 = int(x_3[1,0]/x_3[2,0])
+    p3 = np.array([[x3],
+                   [y3]])
+    frame = cv2.circle(frame, (x3, y3), 5, (255, 0, 0), -1)
 
     X4 = np.array([[0], [0], [0.01], [1]])
-    x4 = (1 / z) * np.matmul(np.matmul(K, P), X4)
-    frame = cv2.circle(frame, (int(x4[0, 0] / x4[2, 0]), int(x4[1, 0] / x4[2, 0])), 5, (0, 0, 255), -1)
+    x_4 = (1 / z) * np.matmul(np.matmul(K, P), X4)
+    x4 = int(x_4[0,0]/x_4[2,0])
+    y4 = int(x_4[1,0]/x_4[2,0])
+    p4 = np.array([[x4],
+                   [y4]])
+    frame = cv2.circle(frame, (x4, y4), 5, (255, 0, 0), -1)
+
+    oo = np.array([[x1],
+                   [y1]])
+
+    x_ = np.array([[x3 - x1],
+                   [y3 - y1]])
+
+    y_ = np.array([[x2 - x1],
+                   [y2 - y1]])
+
+    z_ = np.array([[x4 - x1],
+                   [y4 - y1]])
+
+    p5 = oo + z_ + y_
+    p6 = oo + z_ + y_ + x_
+    p7 = oo + z_ + x_
+    p8 = oo + y_ + x_
+
+    poly_top = np.concatenate((np.transpose(p4),
+                               np.transpose(p5),
+                               np.transpose(p6),
+                               np.transpose(p7)))
+
+    poly_right = np.concatenate((np.transpose(p1),
+                               np.transpose(p2),
+                               np.transpose(p5),
+                               np.transpose(p4)))
+
+    poly_left = np.concatenate((np.transpose(p3),
+                               np.transpose(p7),
+                               np.transpose(p6),
+                               np.transpose(p8)))
+
+    poly_front = np.concatenate((np.transpose(p2),
+                               np.transpose(p5),
+                               np.transpose(p6),
+                               np.transpose(p8)))
+
+    poly_behind = np.concatenate((np.transpose(p1),
+                               np.transpose(p3),
+                               np.transpose(p7),
+                               np.transpose(p4)))
+
+    frame = drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1, p2, p3, p4, p5, p6, p7, p8)
+
+
+    # print(f"{R[0,0]:0.2f}, {R[0,1]:0.2f}, {R[0,2]:0.2f}, {R[1,0]:0.2f}, {R[1,1]:0.2f}, {R[1,2]:0.2f}, {R[2,0]:0.2f}, {R[2,1]:0.2f}, {R[2,2]:0.2f}, ")
 
     return frame
 
