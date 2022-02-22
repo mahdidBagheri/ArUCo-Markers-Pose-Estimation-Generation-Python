@@ -11,14 +11,30 @@ from utils import ARUCO_DICT
 import argparse
 import time
 
-def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1, p2, p3, p4, p5, p6, p7, p8):
+def lineHasIntersectionWithTopPlane(top_pts,line_pts, resolution=10 ):
+    t = (line_pts[0]) - (line_pts[1])
+    dt = t/resolution
+    for n in range(1,resolution-1):
+        p = (line_pts[1]) + n * dt
+        if(int(p[1,0]) < top_pts.shape[0] and  int(p[0,0]) < top_pts.shape[1] and top_pts[int(p[1,0]),int(p[0,0])] == 255):
+            return True
+        # cv2.circle(top_pts, (int(p[0,0]),int(p[1,0])), 2, 128, -1)
+        # cv2.putText(top_pts, f"{n}", (int(p[0,0]),int(p[1,0])), 1, 1, (0, 0, 0), 1)
 
-    if(p6[0,0] < p7[0,0]):
+        # cv2.circle(top_pts, (1,200), 2, 128, -1)
+
+    # cv2.imshow("1", top_pts )
+    return False
+
+def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1, p2, p3, p4, p5, p6, p7, p8):
+    top_plane_mask = np.zeros((frame.shape[0], frame.shape[1]))
+    top_plane_mask = cv2.fillPoly(top_plane_mask, [poly_top], 255)
+    if(not (lineHasIntersectionWithTopPlane(top_plane_mask, line_pts = [p3, p6]) or lineHasIntersectionWithTopPlane(top_plane_mask, line_pts = [p7, p8]))):
         frame = cv2.fillPoly(frame, [poly_left], color = (0,0,255))
     else:
         frame = cv2.fillPoly(frame, [poly_right], color = (0,0,255))
 
-    if(p5[0,0] < p6[0,0]):
+    if(not (lineHasIntersectionWithTopPlane(top_plane_mask, line_pts = [p2, p6]) or lineHasIntersectionWithTopPlane(top_plane_mask, line_pts = [p5, p8]))):
         frame = cv2.fillPoly(frame, [poly_front], color = (255,0,0))
     else:
         frame = cv2.fillPoly(frame, [poly_behind], color = (255,0,0))
@@ -53,6 +69,7 @@ def draw(frame, matrix_coefficients, rvec, tvec):
     p2 = np.array([[x2],
                    [y2]])
     # frame = cv2.circle(frame, (x2, y2), 5, (255, 0, 0), -1)
+    # frame = cv2.putText(frame,"p2", (p2[0,0], p2[1,0]), 1, 1, (0, 0, 0), 1)
 
     X3 = np.array([[0], [0.01], [0], [1]])
     x_3 = (1 / z) * np.matmul(np.matmul(K, P), X3)
@@ -83,9 +100,19 @@ def draw(frame, matrix_coefficients, rvec, tvec):
                    [y4 - y1]])
 
     p5 = oo + z_ + y_
+    # frame = cv2.circle(frame, (p5[0,0], p5[1,0]), 5, (255, 0, 0), -1)
+    # frame = cv2.putText(frame,"p5", (p5[0,0], p5[1,0]), 1, 1, (0, 0, 0), 1)
+
     p6 = oo + z_ + y_ + x_
+    # frame = cv2.circle(frame, (p6[0,0], p6[1,0]), 5, (255, 0, 0), -1)
+    # frame = cv2.putText(frame,"p6", (p6[0,0], p6[1,0]), 1, 1, (0, 0, 0), 1)
+
     p7 = oo + z_ + x_
+    # frame = cv2.circle(frame, (p7[0,0], p7[1,0]), 5, (255, 0, 0), -1)
+
     p8 = oo + y_ + x_
+    # frame = cv2.circle(frame, (p8[0,0], p8[1,0]), 5, (255, 0, 0), -1)
+    # frame = cv2.putText(frame,"p8", (p8[0,0], p8[1,0]), 1, 1, (0, 0, 0), 1)
 
     poly_top = np.concatenate((np.transpose(p4),
                                np.transpose(p5),
