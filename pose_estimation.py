@@ -12,7 +12,6 @@ import argparse
 import time
 
 def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1, p2, p3, p4, p5, p6, p7, p8):
-    frame = cv2.fillPoly(frame, [poly_top], color=(0, 255, 0))
 
     if(p6[0,0] < p7[0,0]):
         frame = cv2.fillPoly(frame, [poly_left], color = (0,0,255))
@@ -24,6 +23,7 @@ def drawCube(frame, poly_top, poly_right, poly_left, poly_front, poly_behind, p1
     else:
         frame = cv2.fillPoly(frame, [poly_behind], color = (255,0,0))
 
+    frame = cv2.fillPoly(frame, [poly_top], color=(0, 255, 0))
 
     return frame
 
